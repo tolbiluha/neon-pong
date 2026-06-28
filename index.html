@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#071513" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Неон Понг — гра на двох</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main id="game" aria-label="Настільний теніс для двох гравців">
+      <canvas id="court"></canvas>
+
+      <div class="score" aria-live="polite">
+        <span id="leftScore">0</span>
+        <span class="score-divider">:</span>
+        <span id="rightScore">0</span>
+      </div>
+
+      <button id="pauseButton" class="icon-button pause-button" type="button" aria-label="Пауза">Ⅱ</button>
+      <button id="soundButton" class="icon-button sound-button" type="button" aria-label="Вимкнути звук">♪</button>
+
+      <section id="startScreen" class="overlay visible">
+        <div class="panel">
+          <p class="eyebrow">ГРА НА ОДНОМУ ТЕЛЕФОНІ</p>
+          <h1>НЕОН<br /><em>ПОНГ</em></h1>
+          <p class="instructions">
+            Кожен гравець рухає пальцем<br />
+            по своїй половині екрана.
+          </p>
+          <div class="players">
+            <span><i class="dot cyan"></i>Гравець 1</span>
+            <span>Гравець 2<i class="dot pink"></i></span>
+          </div>
+          <button id="startButton" class="primary-button" type="button">ПОЧАТИ МАТЧ</button>
+          <p class="hint">Перемога — 7 очок · найкраще грати горизонтально</p>
+        </div>
+      </section>
+
+      <section id="pauseScreen" class="overlay">
+        <div class="panel compact">
+          <p class="eyebrow">МАТЧ ПРИЗУПИНЕНО</p>
+          <h2>ПАУЗА</h2>
+          <button id="resumeButton" class="primary-button" type="button">ПРОДОВЖИТИ</button>
+          <button id="restartButton" class="text-button" type="button">Почати заново</button>
+        </div>
+      </section>
+
+      <section id="winScreen" class="overlay">
+        <div class="panel compact">
+          <p class="eyebrow">МАТЧ ЗАВЕРШЕНО</p>
+          <h2 id="winnerText">ГРАВЕЦЬ 1<br /><em>ПЕРЕМІГ!</em></h2>
+          <p id="finalScore" class="final-score">7 : 4</p>
+          <button id="playAgainButton" class="primary-button" type="button">ЩЕ ОДИН МАТЧ</button>
+        </div>
+      </section>
+
+      <div id="rotateNotice" class="rotate-notice" aria-hidden="true">
+        <div class="phone-icon">↻</div>
+        <strong>Поверни телефон</strong>
+        <span>Грати зручніше горизонтально</span>
+      </div>
+    </main>
+    <script src="game.js"></script>
+  </body>
+</html>
