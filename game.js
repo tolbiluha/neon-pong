@@ -34,6 +34,7 @@
   const left = { x: 0, y: 0, targetY: 0, width: 14, height: 100, color: "#58ffe3" };
   const right = { x: 0, y: 0, targetY: 0, width: 14, height: 100, color: "#ff4f91" };
   const ball = { x: 0, y: 0, vx: 0, vy: 0, radius: 9, trail: [] };
+  const activePointers = new Map();
   let audio = null;
   let animationId = 0;
 
@@ -140,6 +141,7 @@
   function startGame() {
     initAudio();
     enterFullscreen();
+    gameRoot.classList.add("playing");
     startScreen.classList.remove("visible");
     winScreen.classList.remove("visible");
     pauseScreen.classList.remove("visible");
@@ -153,6 +155,7 @@
     if (!state.running || state.gameOver) return;
     state.paused = typeof force === "boolean" ? force : !state.paused;
     pauseScreen.classList.toggle("visible", state.paused);
+    gameRoot.classList.toggle("paused", state.paused);
     pauseButton.textContent = state.paused ? "▶" : "Ⅱ";
     if (!state.paused) state.lastTime = performance.now();
   }
@@ -162,11 +165,13 @@
     else state.rightScore++;
     updateScore();
     state.shake = 10;
+    navigator.vibrate?.(side === "left" ? [18] : [12, 18]);
     beep(side === "left" ? 620 : 520, 0.16, 0.05);
 
     if (state.leftScore >= WIN_SCORE || state.rightScore >= WIN_SCORE) {
       state.gameOver = true;
       state.running = false;
+      gameRoot.classList.remove("playing");
       const leftWon = state.leftScore > state.rightScore;
       winnerText.innerHTML = `ГРАВЕЦЬ ${leftWon ? "1" : "2"}<br><em>ПЕРЕМІГ!</em>`;
       winnerText.querySelector("em").style.color = leftWon ? left.color : right.color;
@@ -183,12 +188,26 @@
     paddle.targetY = clamp(clientY - rect.top - paddle.height / 2, 0, state.height - paddle.height);
   }
 
-  function onPointer(event) {
+  function onPointerDown(event) {
     event.preventDefault();
     if (!state.running || state.paused) return;
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
-    movePaddle(x < state.width / 2 ? left : right, event.clientY);
+    const side = x < state.width / 2 ? "left" : "right";
+    activePointers.set(event.pointerId, side);
+    canvas.setPointerCapture?.(event.pointerId);
+    movePaddle(side === "left" ? left : right, event.clientY);
+  }
+
+  function onPointerMove(event) {
+    if (!activePointers.has(event.pointerId)) return;
+    event.preventDefault();
+    const side = activePointers.get(event.pointerId);
+    movePaddle(side === "left" ? left : right, event.clientY);
+  }
+
+  function onPointerUp(event) {
+    activePointers.delete(event.pointerId);
   }
 
   function update(dt) {
@@ -257,6 +276,7 @@
       ? paddle.x + paddle.width + ball.radius
       : paddle.x - ball.radius;
     state.shake = 4;
+    navigator.vibrate?.(8);
     beep(290 + Math.abs(relativeHit) * 160, 0.045, 0.035);
   }
 
@@ -338,11 +358,10 @@
     animationId = requestAnimationFrame(frame);
   }
 
-  canvas.addEventListener("pointerdown", (event) => {
-    canvas.setPointerCapture?.(event.pointerId);
-    onPointer(event);
-  });
-  canvas.addEventListener("pointermove", onPointer);
+  canvas.addEventListener("pointerdown", onPointerDown);
+  canvas.addEventListener("pointermove", onPointerMove);
+  canvas.addEventListener("pointerup", onPointerUp);
+  canvas.addEventListener("pointercancel", onPointerUp);
 
   window.addEventListener("keydown", (event) => {
     state.keys.add(event.code);
@@ -351,6 +370,9 @@
   });
   window.addEventListener("keyup", (event) => state.keys.delete(event.code));
   window.addEventListener("resize", resize);
+  window.visualViewport?.addEventListener("resize", resize);
+  window.addEventListener("contextmenu", (event) => event.preventDefault());
+  document.addEventListener("gesturestart", (event) => event.preventDefault());
   document.addEventListener("visibilitychange", () => {
     if (document.hidden && state.running && !state.paused) togglePause(true);
   });
